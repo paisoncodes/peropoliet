@@ -29,7 +29,6 @@
                             </a>
                         </td>
                         <td>{{ product.name }}</td>
-                        <td>{{ item.quantity }}</td>
                         <td>
                             <form action="{% url 'cart:cart_remove' product.id %}" method="post"></form>
                                 {{ item.update_quantity_form.quantity }}
@@ -52,6 +51,6 @@
     </table>
     <p class='text-right'>
         <a href="{% url 'store:product_list' %}" class="button light">Continue Shopping</a>
-        <a href="#" class="button">Checkout </a>
+        <a href="{% url 'orders:order_create' %}" class="button">Checkout </a>
     </p>
 {% endblock %}
