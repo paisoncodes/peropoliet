@@ -25,5 +25,5 @@ def product_detail(request, id, slug):
     
     return render(request, 
                     'store/product/detail.html',
-                    {'products':product,
+                    {'product':product,
                     'cart_product_form':cart_product_form})
