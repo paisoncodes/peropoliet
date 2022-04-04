@@ -5,7 +5,7 @@ from store.models import Product
 class Cart(object):
     def __init__(self, request):
         """
-        Initialise the cart.
+        Initialize the cart.
         """
         self.session = request.session
         cart = self.session.get(settings.CART_SESSION_ID)
@@ -63,6 +63,9 @@ class Cart(object):
             Count all items in the cart.
             """
             return sum(item['quantity'] for item in self.cart.values())
+        
+        def get_total_price(self):
+            return sum(Decimal(item['price']) * item['quantity'] for item in self.cart.values())
         
         def clear(self):
             #remove cart from session

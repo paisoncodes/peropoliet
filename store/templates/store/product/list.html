@@ -8,15 +8,13 @@
     <div id="sidebar">
         <h3>Categories</h3>
         <ul>
-            <li {% if not category %}class="selected"{% endif %}>
+            <li {% if not category %} class="selected"{% endif %}>
                 <a href="{% url 'store:product_list'%}">All</a>
             </li>
             {% for c in categories %}
-                {% if category.slug == c.slug %} class="selected"
-                <li>
+            <li {% if category.slug == c.slug %} class="selected" {% endif %}>
                     <a href="{{ c.get_absolute_url }}">{{ c.name }}</a>
-                </li>
-                {% endif %}
+            </li>
             {% endfor %}
         </ul>
     </div>
@@ -33,7 +31,6 @@
             <br>
             ${{ product.price }}
         </div>
-
         {% endfor %}
     </div>
 {% endblock %}
