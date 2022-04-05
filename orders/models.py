@@ -1,4 +1,3 @@
-from unicodedata import decimal
 from django.db import models
 from store.models import Product
 
