@@ -132,3 +132,8 @@ CART_SESSION_ID = 'cart'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+    '/var/www/static/',
+]
