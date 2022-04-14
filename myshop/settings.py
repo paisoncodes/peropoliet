@@ -11,6 +11,13 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from lazerpay import Lazerpay
+
+LAZER_PUBLIC_KEY = 'pk_test_XN33dNcIN8nOsaOc90ZYdjIn176Ix8unyqr9KRLtURL8ZgSPbo'
+
+LAZER_SECRET_KEY = 'sk_test_vvqDUkFETASs5U7eA6awsRBd1e6pVvb0cwuecK6GNaFeVwSJb2'
+
+lazerpay = Lazerpay(LAZER_PUBLIC_KEY, LAZER_SECRET_KEY)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -40,6 +47,7 @@ INSTALLED_APPS = [
     'shop.apps.ShopConfig',
     'cart.apps.CartConfig',
     'orders.apps.OrdersConfig',
+    'payment.apps.PaymentConfig',
 ]
 
 MIDDLEWARE = [
