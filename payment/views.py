@@ -7,14 +7,16 @@ from orders.models import Order
 from lazerpay import Lazerpay
 from .services import *
 
+gateway = 'uwjdksidljjzld'
+
 def payment_process(request):
-   order_id = = request.session.get('order_id')
+   order_id = request.session.get('order_id')
    order = get_object_or_404(Order, id=order_id)
    total_cost = order.get_total_cost()
 
    if request.method == 'POST':
       # retrieve nonce
-      nonce = request.POST.get('payment_method_nonce', None)
+      nonce = request.POST.get('https://api.lazerpay.engineering/api/v1/transaction/initialize', None)
       # create and submit transaction
       result = payment_tx().sale({
          'amount': f'{total_cost:.2f}',
@@ -35,8 +37,14 @@ def payment_process(request):
          return redirect('payment:canceled')
    else:
       # generate token
-      client_token = gateway.client_token.generate()
+      client_token = gateway
       return render(request,
                      'payment/process.html',
                      {'order': order,
                      'client_token': client_token})
+
+def payment_done(request):
+   return render(request, 'payment/done.html')
+
+def payment_canceled(request):
+   return render(request, 'payment/canceled.html')

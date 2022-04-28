@@ -1,8 +1,10 @@
 {% extends "shop/base.html" %}
 
-{% block title %}Pay by credit card{% endblock %}
+{% block title %}Pay with crypto{% endblock %}
 
 {% block content %}
+<script> https://cdn.jsdelivr.net/gh/LazerPay-Finance/checkout-build@main/checkout@1.0.1/dist/index.min.js </script>
+
 <form id="paymentForm">
     <div class="form-group">
       <label for="name">Name</label>
@@ -10,13 +12,21 @@
     </div>
     <div class="form-group">
       <label for="email">Email Address</label>
-      <input type="email" id="email-address" />
-    </div>
+      <input type="email" id="email" />
     </div>
     <div class="form-group">
       <label for="amount">Amount</label>
       <input type="number" id="amount" required />
     </div>
+    <div class="form-group">
+      <label for="amount">Key</label>
+      <input type="text" id="key" required />
+    </div>
+    <div class="form-group">
+      <label for="amount">currency</label>
+      <input type="number" id="currency" required />
+    </div>
+
     <div class="form-submit">
       <button type="submit" onclick="payWithLazerpay()"> Pay with Lazerpay </button>
     </div>

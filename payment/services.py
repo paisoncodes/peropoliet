@@ -1,5 +1,5 @@
 from lazerpay import Lazerpay
-
+from myshop.settings import *
 lazerpay = Lazerpay(LAZER_PUBLIC_KEY, LAZER_SECRET_KEY)
 
 '''
