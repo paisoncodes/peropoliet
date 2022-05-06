@@ -1,13 +1,12 @@
-from lazerpay import Lazerpay
-from myshop.settings import *
-lazerpay = Lazerpay(LAZER_PUBLIC_KEY, LAZER_SECRET_KEY)
+from myshop.settings import lazerpay
+
 
 '''
 Initialize payment
 '''
-async def payment_tx():
+async def payment_tx(data):
    transaction_payload = {
-      'reference': 'YOUR_REFERENCE', # Replace with a reference you generated
+      'reference': data["reference"], # Replace with a reference you generated
       'customer_name': 'Njoku Emmanuel',
       'customer_email': 'kalunjoku123@gmail.com',
       'coin': 'BUSD', # BUSD, DAI, USDC or USDT
