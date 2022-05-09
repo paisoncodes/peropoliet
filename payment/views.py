@@ -6,30 +6,38 @@ from rest_framework import status
 from django.shortcuts import render, redirect, get_object_or_404
 from myshop.settings import lazerpay
 from orders.models import Order
+from .models import PayWithCrypto
 
 
-gateway = 'uwjdksidljjzld'
+# gateway = 'uwjdksidljjzld'
 
-async def payment_process(request):
+def payment_process(request):
    order_id = request.session.get('order_id')
    order = get_object_or_404(Order, id=order_id)
    total_cost = order.get_total_cost()
 
    if request.method == 'POST':
-      transaction_payload = {
-         'reference': 'YOUR_REFERENCE', # Replace with a reference you generated
-         'customer_name': 'Njoku Emmanuel',
-         'customer_email': 'kalunjoku123@gmail.com',
-         'coin': 'BUSD', # BUSD, DAI, USDC or USDT
-         'currency': 'USD', # NGN, AED, GBP, EUR
-         'amount': total_cost,
-         'accept_partial_payment': True, # By default it's false
-      }
+      try:
+         payment_info = PayWithCrypto.objects.create(
+            name=request.data['name'],
+            email=request.data['email'],
+            currency=request.data['currency'],
+            coin=request.data['coin']
+         )
+         response = lazerpay.initTransaction( 
+            reference=payment_info['reference'], # Replace with a reference you generated
+            amount=amount, 
+            customer_name=payment_info['name'], 
+            customer_email=payment_info['email'], 
+            coin=payment_info['coin'], 
+            currency=payment_info['currency'], 
+            accept_partial_payment=True # By default, it's false
+         )
+         return Response(response, status=status.HTTP_200_OK)
+      except Exception as e:
+         return Response(e, status=status.HTTP_400_BAD_REQUEST)
 
-      result = await lazerpay.payment.initialize_payment(transaction_payload)
-      result = result.json()
-
-      if result['is_success']:
+      if response['is_success']:
          #mark the order as paid
          order.paid = True
 
@@ -40,13 +48,51 @@ def payment_canceled(request):
 
 class PaymentLink(APIView):
    def post(self, request):
+      order_id = request.session.get('order_id')
+      order = get_object_or_404(Order, id=order_id)
+      amount = order.get_total_cost()
+
       try:
-         response = test_create_link(request.data)
+         payment_info = PayWithCrypto.objects.create(
+            name=request.data['name'],
+            email=request.data['email'],
+            currency=request.data['currency'],
+            amount=request.data['amount'],
+            coin=request.data['coin']
+         )
+         response = lazerpay.initTransaction( 
+            reference=payment_info['reference'], # Replace with a reference you generated
+            amount=payment_info['amount'], 
+            customer_name=payment_info['name'], 
+            customer_email=payment_info['email'], 
+            coin=payment_info['coin'], 
+            currency=payment_info['currency'], 
+            accept_partial_payment=True # By default, it's false
+         )
          return Response(response, status=status.HTTP_200_OK)
       except Exception as e:
-         return Response(
-            {
-               'message':e
-            },
-            status=status.HTTP_400_BAD_REQUEST
+         return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
+class ConfirmPayment(APIView):
+   def post(self, request):
+      try:
+         response_1 = lazerpay.confirmPayment(
+            identifier = request.data['reference']|request.data['address']
          )
+         if response_1:
+            PayWithCrypto.objects.filter(reference=request.data['reference']).update(successful=True)
+            return Response(
+               {
+                  'message':'Payment Successful'
+               },
+               status=status.HTTP_200_OK
+            )
+         else:
+            return Response(
+               {
+                  "message":"Payment Failed"
+               },
+               status=status.HTTP_200_OK
+            )
+      except Exception as e:
+         return Response(e, status=status.HTTP_400_BAD_REQUEST)
