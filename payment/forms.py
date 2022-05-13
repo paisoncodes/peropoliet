@@ -6,6 +6,6 @@ class InitializePaymentForm(forms.ModelForm):
     class Meta:
         model = PayWithCrypto
         fields = [
-            "name",
-            "email"
+            'name',
+            'email'
         ]
