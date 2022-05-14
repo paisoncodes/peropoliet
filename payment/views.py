@@ -1,3 +1,5 @@
+import json
+import io
 from django.shortcuts import render
 
 from rest_framework.views import APIView
@@ -96,3 +98,19 @@ class ConfirmPayment(APIView):
             )
       except Exception as e:
          return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
+class GetCoins(APIView):
+   def post(self, request):
+      try:
+         response = lazerpay.getAcceptedCoins()
+         fix_bytes_value = response.replace(b"'", b'"')
+         response = json.load(io.BytesIO(fix_bytes_value))
+         return Response(response, status=status.HTTP_200_OK)
+      except Exception as e: 
+         return Response(
+            {
+               "error": str(e)
+            },
+            status=status.HTTP_401_UNAUTHORIZED
+         )
+
