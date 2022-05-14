@@ -11,6 +11,9 @@ class PayWithCrypto(models.Model):
     reference = models.CharField(max_length=25)
     successful = models.BooleanField(default=False)
 
+    def __str__(self) -> str:
+        return self.reference
+
     def save(self, *args, **kwargs):
         while not self.reference:
             reference = secrets.token_urlsafe(16)

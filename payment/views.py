@@ -1,7 +1,8 @@
 import json
 import io
+import secrets
 from django.shortcuts import render
-
+from rest_framework import serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -50,30 +51,32 @@ def payment_canceled(request):
 
 class PaymentLink(APIView):
    def post(self, request):
-      order_id = request.session.get('order_id')
-      order = get_object_or_404(Order, id=order_id)
-      amount = order.get_total_cost()
+      # order_id = request.session.get('order_id')
+      # order = get_object_or_404(Order, id=order_id)
+      # amount = order.get_total_cost()
+      # payment_info = request.data
 
       try:
-         payment_info = PayWithCrypto.objects.create(
-            name=request.data['name'],
-            email=request.data['email'],
-            currency=request.data['currency'],
-            amount=request.data['amount'],
-            coin=request.data['coin']
-         )
-         response = lazerpay.initTransaction( 
-            reference=payment_info['reference'], # Replace with a reference you generated
-            amount=payment_info['amount'], 
-            customer_name=payment_info['name'], 
-            customer_email=payment_info['email'], 
-            coin=payment_info['coin'], 
-            currency=payment_info['currency'], 
-            accept_partial_payment=False # By default, it's false
-         )
-         return Response(response, status=status.HTTP_200_OK)
+         serializer = CreatePaymentSerializer(data=request.data)
+         if serializer.is_valid():
+            serializer.save()
+            payment = serializer.data
+            response = lazerpay.initTransaction( 
+               reference=payment['reference'], # Replace with a reference you generated
+               amount=payment['amount'], 
+               customer_name=payment['name'], 
+               customer_email=payment['email'], 
+               coin=payment['coin'], 
+               currency=payment['currency'], 
+               accept_partial_payment=False # By default, it's false
+            )
+            fix_bytes_value = response.replace(b"'", b'"')
+            response = json.load(io.BytesIO(fix_bytes_value))
+            return Response(response, status=status.HTTP_200_OK)
+         else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
       except Exception as e:
-         return Response(e, status=status.HTTP_400_BAD_REQUEST)
+         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class ConfirmPayment(APIView):
    def post(self, request):
@@ -105,7 +108,7 @@ class GetCoins(APIView):
          response = lazerpay.getAcceptedCoins()
          fix_bytes_value = response.replace(b"'", b'"')
          response = json.load(io.BytesIO(fix_bytes_value))
-         return Response(response, status=status.HTTP_200_OK)
+         return Response(response["data"], status=status.HTTP_200_OK)
       except Exception as e: 
          return Response(
             {
@@ -113,4 +116,35 @@ class GetCoins(APIView):
             },
             status=status.HTTP_401_UNAUTHORIZED
          )
+
+class GetPaymentInfo(APIView):
+   
+   def get(self, request):
+      infos = PayWithCrypto.objects.all()
+      serializer = PaymentSerializer(infos, many=True)
+      return Response(serializer.data, status=status.HTTP_200_OK)
+
+class PaymentSerializer(serializers.ModelSerializer):
+   class Meta:
+      model = PayWithCrypto
+      fields = "__all__"
+
+class CreatePaymentSerializer(serializers.ModelSerializer):
+   class Meta:
+      model = PayWithCrypto
+      fields = ("id", "name", "email", "currency", "amount", "coin", "reference")
+
+      read_only_fields = ["id", "reference"]
+   
+   def create(self, validated_data):
+      payment = PayWithCrypto.objects.create(
+         name=validated_data["name"],
+         email=validated_data['email'],
+         currency=validated_data['currency'],
+         amount=validated_data['amount'],
+         coin=validated_data['coin']
+      )
+      payment.save()
+
+      return payment
 
